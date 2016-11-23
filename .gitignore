@@ -2,4 +2,6 @@
 *.doc
 *.docx
 *~
+diagrams/class diagram
+*.swp
 
