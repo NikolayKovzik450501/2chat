@@ -25,7 +25,7 @@ class Post():
     def get_header(self):
         return self.__header__
 
-    def het_body(self):
+    def get_body(self):
         return self.__body__
 
 
@@ -45,6 +45,16 @@ class Thread():
 
     def get_header(self):
         return self.__posts__[0].get_header()
+
+    def send_posts(self, sock):
+        for post in self.__posts__:
+            sock.send(post.get_header().encode('utf-8'))
+            sock.send(MESS_ESC)
+            sock.send(post.get_body().encode('utf-8'))
+            print(post.get_body().encode('utf-8'))
+            sock.send(MESS_ESC)
+        sock.send(ESC)
+
 
 class Board():
 
@@ -108,6 +118,15 @@ class Server():
            (client, address) = listener.accept()
            self.handle_input(client, address)
 
+    def send_boards(self, sock):
+        for key in self.__boards__:
+            sock.send(bytes([key]))
+            sock.send(self.__boards__[key].get_name().encode('utf-8'))
+            print(self.__boards__[key].get_name().encode('utf-8'))
+            sock.send(MESS_ESC)
+        sock.send(ESC)
+
+
     def handle_input(self, sock, address):
         buf = sock.recv(1)
         chain = b''
@@ -121,12 +140,18 @@ class Server():
                 [head, body] = chain[3:].split(MESS_ESC)
                 initial = Post(head, body)
                 board.add_thread(initial)
-            if chain[0] == GET[0]:
+            elif chain[0] == GET[0]:
                 board.send_threads(sock)
         elif chain[1] == POSTS[0]:
-            pass
+            board = self.__boards__[chain[2]]
+            thread = board.get_thread(chain[3])
+            if chain[0] == SET[0]:
+                [head, body] = chain[4:].split(MESS_ESC)
+                thread.add_post(Post(head, body))
+            elif chain[0] == GET[0]:
+                thread.send_posts(sock)
         elif chain[1] == BOARDS[0]:
-            pass
+            self.send_boards(sock)
         else:
             print('Bad op')
 
@@ -140,6 +165,11 @@ def main():
     board.add_thread(Post('Head2', 'Body2'))
     board.add_thread(Post('Head3', 'Body3'))
     board.add_thread(Post('Head4', 'Body4'))
+    thread = board.get_thread(3)
+    thread.add_post(Post('Head12', 'Body12'))
+    thread.add_post(Post('Head13', 'Body13'))
+    thread.add_post(Post('Head14', 'Body14'))
+    thread.add_post(Post('Head15', 'Body15'))
     serv.connect_handle()
     return 0
 
