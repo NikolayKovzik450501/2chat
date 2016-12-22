@@ -1,20 +1,15 @@
 package twoChat;
 
-public class Post {
+class Post {
 
-    private String header, body;
+    private String header;
 
     Post(String header) {
         this.header = header;
-        this.body = "body";
     }
 
     String getHeader() {
         return header;
-    }
-
-    String getBody() {
-        return body;
     }
 
 }

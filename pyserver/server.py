@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import socket, sys, pdb
+import socket, sys, pdb, threading
 
 ESC = bytes([240])
 MESS_ESC = bytes([241])
@@ -12,22 +12,14 @@ SET = bytes([246])
 
 class Post():
     
-    def __init__(self, header, body):
+    def __init__(self, header):
         if isinstance(header, bytes):
             self.__header__ = header.decode('utf-8')
         else:
             self.__header__ = header
-        if isinstance(body, bytes):
-            self.__body__ = body.decode('utf-8')
-        else:
-            self.__body__ = body
-
+    
     def get_header(self):
         return self.__header__
-
-    def get_body(self):
-        return self.__body__
-
 
 class Thread():
 
@@ -79,7 +71,6 @@ class Board():
         for key in self.__threads__:
             sock.send(bytes([key]))
             sock.send(self.__threads__[key].get_header().encode('utf-8'))
-            print(self.__threads__[key].get_header().encode('utf-8'))
             sock.send(MESS_ESC)
         sock.send(ESC)
 
@@ -118,7 +109,6 @@ class Server():
         for key in self.__boards__:
             sock.send(bytes([key]))
             sock.send(self.__boards__[key].get_name().encode('utf-8'))
-            print(self.__boards__[key].get_name().encode('utf-8'))
             sock.send(MESS_ESC)
         sock.send(ESC)
 
@@ -129,12 +119,11 @@ class Server():
         while buf != ESC:
             chain += buf
             buf = sock.recv(1)
-        print(chain)
         if chain[1] == THREADS[0]:
             board = self.__boards__[chain[2]]
             if chain[0] == SET[0]:
                 head = chain[3:]
-                initial = Post(head, "")
+                initial = Post(head)
                 board.add_thread(initial)
             elif chain[0] == GET[0]:
                 board.send_threads(sock)
@@ -143,7 +132,7 @@ class Server():
             thread = board.get_thread(chain[3])
             if chain[0] == SET[0]:
                 head = chain[4:]
-                thread.add_post(Post(head, ""))
+                thread.add_post(Post(head))
             elif chain[0] == GET[0]:
                 thread.send_posts(sock)
         elif chain[1] == BOARDS[0]:
@@ -153,20 +142,13 @@ class Server():
 
 def main():
     serv = Server()
-    serv.add_board('Test1', 100)
-    serv.add_board('Test2', 100)
-    serv.add_board('Test3', 100)
+    serv.add_board('Films', 100)
+    serv.add_board('Education', 100)
+    serv.add_board('Music', 100)
     board = serv.get_board(0)
-    board.add_thread(Post('Head1', 'Body1'))
-    board.add_thread(Post('Head2', 'Body2'))
-    board.add_thread(Post('Head3', 'Body3'))
-    board.add_thread(Post('Head4', 'Body4'))
-    thread = board.get_thread(3)
-    thread.add_post(Post('Head12', 'Body12'))
-    thread.add_post(Post('Head13', 'Body13'))
-    thread.add_post(Post('Head14', 'Body14'))
-    thread.add_post(Post('Head15', 'Body15'))
     serv.connect_handle()
+    #listener = threading.Thread(target = serv.connect_handle())
+    #listener.start()
     return 0
 
 if (__name__ == "__main__"):
