@@ -5,3 +5,6 @@
 diagrams/class diagram
 *.swp
 
+.idea/
+out/
+2chat.iml
