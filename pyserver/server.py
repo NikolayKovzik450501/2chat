@@ -1,21 +1,32 @@
 #!/usr/bin/env python
 
-import socket
+import socket, sys, pdb
 
 ESC = bytes([240])
 MESS_ESC = bytes([241])
+GET = bytes([242])
+BOARDS = bytes([243])
+THREADS = bytes([244])
+POSTS = bytes([245])
+SET = bytes([246])
 
 class Post():
     
     def __init__(self, header, body):
-        self.__header__ = header
-        self.__body__ = body
+        if isinstance(header, bytes):
+            self.__header__ = header.decode('utf-8')
+        else:
+            self.__header__ = header
+        if isinstance(body, bytes):
+            self.__body__ = body.decode('utf-8')
+        else:
+            self.__body__ = body
 
     def get_header(self):
-        return self.header
+        return self.__header__
 
     def het_body(self):
-        return self.body
+        return self.__body__
 
 
 class Thread():
@@ -33,7 +44,7 @@ class Thread():
         return self.__posts__
 
     def get_header(self):
-        return self.__posts__[0]
+        return self.__posts__[0].get_header()
 
 class Board():
 
@@ -56,6 +67,14 @@ class Board():
 
     def get_thread(self, thread_id):
         return self.__threads__.get(thread_id)
+
+    def send_threads(self, sock):
+        for key in self.__threads__:
+            sock.send(bytes([key]))
+            sock.send(self.__threads__[key].get_header().encode('utf-8'))
+            print(self.__threads__[key].get_header().encode('utf-8'))
+            sock.send(MESS_ESC)
+        sock.send(ESC)
 
     def dumps(self):
         result = {}
@@ -85,18 +104,44 @@ class Server():
        listener.bind(('', 5005))
        listener.listen()
        while not self.__exit__:
+           pdb.set_trace()
            (client, address) = listener.accept()
            self.handle_input(client, address)
-    
+
     def handle_input(self, sock, address):
         buf = sock.recv(1)
         chain = b''
         while buf != ESC:
             chain += buf
             buf = sock.recv(1)
-        for key in self.__boards__:
-            name = self.__boards__[key].get_name().encode('utf-8')
-            sock.send(bytes([key]) + name)
-            sock.send(MESS_ESC)
-        sock.send(ESC)
+        print(chain)
+        if chain[1] == THREADS[0]:
+            board = self.__boards__[chain[2]]
+            if chain[0] == SET[0]:
+                [head, body] = chain[3:].split(MESS_ESC)
+                initial = Post(head, body)
+                board.add_thread(initial)
+            if chain[0] == GET[0]:
+                board.send_threads(sock)
+        elif chain[1] == POSTS[0]:
+            pass
+        elif chain[1] == BOARDS[0]:
+            pass
+        else:
+            print('Bad op')
 
+def main():
+    serv = Server()
+    serv.add_board('Test1', 100)
+    serv.add_board('Test2', 100)
+    serv.add_board('Test3', 100)
+    board = serv.get_board(0)
+    board.add_thread(Post('Head1', 'Body1'))
+    board.add_thread(Post('Head2', 'Body2'))
+    board.add_thread(Post('Head3', 'Body3'))
+    board.add_thread(Post('Head4', 'Body4'))
+    serv.connect_handle()
+    return 0
+
+if (__name__ == "__main__"):
+    sys.exit(main())
