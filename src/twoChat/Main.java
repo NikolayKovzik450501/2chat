@@ -1,4 +1,4 @@
-package comChat;
+package twoChat;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -14,20 +14,20 @@ public class Main extends Application {
     private FXMLLoader fxmlLoader;
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         URL location = getClass().getResource("chatGui.fxml");
         fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(location);
         fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
         Parent parent = fxmlLoader.load(location.openStream());
-        primaryStage.setTitle("Serial Chat");
+        primaryStage.setTitle("Two Chat");
         primaryStage.setScene(new Scene(parent));
         primaryStage.show();
     }
 
     @Override
     public void stop() {
-        ((ChatController) fxmlLoader.getController()).onStop();
+//        ((ChatController) fxmlLoader.getController()).onStop();
     }
 
     public static void main(String[] args) {
