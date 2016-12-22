@@ -8,3 +8,4 @@ diagrams/class diagram
 .idea/
 out/
 2chat.iml
+pyserver/__pycache__

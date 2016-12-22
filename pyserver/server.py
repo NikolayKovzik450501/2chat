@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import socket
+
+ESC = bytes([240])
+MESS_ESC = bytes([241])
+
 class Post():
     
     def __init__(self, header, body):
@@ -20,7 +25,7 @@ class Thread():
         self.__limit__ = bumplimit
 
     def add_post(self, post):
-        if len(self.__posts__) == limit:
+        if len(self.__posts__) == self.__limit__:
             return false
         self.__posts__.append(post)
 
@@ -49,4 +54,49 @@ class Board():
     def delete_thread(self, thread_id):
         self.__threads__.pop(thread_id)
 
+    def get_thread(self, thread_id):
+        return self.__threads__.get(thread_id)
+
+    def dumps(self):
+        result = {}
+        for key in self.__threads__:
+            pass
+
+class Server():
+
+    def __init__(self):
+        self.__boards__ = {}
+        self.__exit__ = False
+
+    def add_board(self, name, bumplimit):
+        new_board = Board(name, bumplimit)
+        new_id = len(self.__boards__)
+        self.__boards__[new_id] = new_board
+        return new_id
+
+    def delete_board(self, board_id):
+        self.__boards__.pop(board_id)
+
+    def get_board(self, board_id):
+        return self.__boards__.get(board_id)
+
+    def connect_handle(self):
+       listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+       listener.bind(('', 5005))
+       listener.listen()
+       while not self.__exit__:
+           (client, address) = listener.accept()
+           self.handle_input(client, address)
+    
+    def handle_input(self, sock, address):
+        buf = sock.recv(1)
+        chain = b''
+        while buf != ESC:
+            chain += buf
+            buf = sock.recv(1)
+        for key in self.__boards__:
+            name = self.__boards__[key].get_name().encode('utf-8')
+            sock.send(bytes([key]) + name)
+            sock.send(MESS_ESC)
+        sock.send(ESC)
 
