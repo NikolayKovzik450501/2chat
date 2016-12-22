@@ -8,11 +8,13 @@
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="340.0" prefWidth="515.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="twoChat.ChatController">
    <children>
-      <ListView fx:id="generalList" prefHeight="298.0" prefWidth="534.0" />
+      <ListView fx:id="generalList" onMouseClicked="#onListClicked" prefHeight="298.0" prefWidth="534.0" />
       <HBox prefHeight="31.0" prefWidth="600.0">
          <children>
-            <TextArea prefHeight="42.0" prefWidth="409.0" />
-            <Button mnemonicParsing="false" prefHeight="46.0" prefWidth="116.0" text="Button" />
+            <TextArea fx:id="messageField" disable="true" prefHeight="42.0" prefWidth="286.0" />
+            <Button fx:id="sendButton" disable="true" mnemonicParsing="false" onAction="#onSend" prefHeight="42.0" prefWidth="97.0" text="Send" />
+            <Button fx:id="backButton" disable="true" mnemonicParsing="false" onAction="#onBack" prefHeight="42.0" prefWidth="101.0" text="Back" />
+            <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" prefHeight="42.0" prefWidth="95.0" text="Refresh" />
          </children>
       </HBox>
    </children>

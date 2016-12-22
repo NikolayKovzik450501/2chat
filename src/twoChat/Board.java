@@ -7,16 +7,20 @@ public class Board {
 
     private ArrayList<Thread> threads;
     private String name;
-    private int id;
+    private byte id;
 
-    Board(int id, String name) {
+    Board(byte id, String name) {
         threads = new ArrayList<>();
         this.name = name;
         this.id = id;
     }
 
-    public String getName() {
+    String getName() {
         return name;
+    }
+
+    byte getId() {
+        return id;
     }
 
     public ArrayList<Thread> getThreads() {

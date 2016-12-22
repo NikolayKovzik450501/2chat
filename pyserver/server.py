@@ -50,9 +50,6 @@ class Thread():
         for post in self.__posts__:
             sock.send(post.get_header().encode('utf-8'))
             sock.send(MESS_ESC)
-            sock.send(post.get_body().encode('utf-8'))
-            print(post.get_body().encode('utf-8'))
-            sock.send(MESS_ESC)
         sock.send(ESC)
 
 
@@ -114,7 +111,6 @@ class Server():
        listener.bind(('', 5005))
        listener.listen()
        while not self.__exit__:
-           pdb.set_trace()
            (client, address) = listener.accept()
            self.handle_input(client, address)
 
@@ -137,8 +133,8 @@ class Server():
         if chain[1] == THREADS[0]:
             board = self.__boards__[chain[2]]
             if chain[0] == SET[0]:
-                [head, body] = chain[3:].split(MESS_ESC)
-                initial = Post(head, body)
+                head = chain[3:]
+                initial = Post(head, "")
                 board.add_thread(initial)
             elif chain[0] == GET[0]:
                 board.send_threads(sock)
@@ -146,8 +142,8 @@ class Server():
             board = self.__boards__[chain[2]]
             thread = board.get_thread(chain[3])
             if chain[0] == SET[0]:
-                [head, body] = chain[4:].split(MESS_ESC)
-                thread.add_post(Post(head, body))
+                head = chain[4:]
+                thread.add_post(Post(head, ""))
             elif chain[0] == GET[0]:
                 thread.send_posts(sock)
         elif chain[1] == BOARDS[0]:

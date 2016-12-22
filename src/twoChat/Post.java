@@ -4,9 +4,9 @@ public class Post {
 
     private String header, body;
 
-    Post(String header, String body) {
+    Post(String header) {
         this.header = header;
-        this.body = body;
+        this.body = "body";
     }
 
     String getHeader() {
