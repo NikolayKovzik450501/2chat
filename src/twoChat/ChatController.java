@@ -20,7 +20,7 @@ public class ChatController implements Initializable {
     private ListView<String> generalList;
 
     @FXML
-    private Button backButton, sendButton;
+    private Button backButton, sendButton, refreshButton;
 
     @FXML
     private TextArea messageField;
@@ -47,8 +47,6 @@ public class ChatController implements Initializable {
         this.currentBoard = -1;
         this.currentThread = -1;
         port = 5005;
-        host = "localhost";
-        refreshBoards();
     }
 
     @FXML
@@ -76,6 +74,7 @@ public class ChatController implements Initializable {
                 messageField.setDisable(true);
                 break;
             case THREAD:
+                sendButton.setText("Create");
                 printThreads();
                 break;
         }
@@ -89,12 +88,14 @@ public class ChatController implements Initializable {
                 case GLOB:
                     currentBoard = getBoardId(item);
                     refreshThreads(currentBoard);
-                    sendButton.setDisable(false);
+                    sendButton.setText("Create");
                     backButton.setDisable(false);
+                    sendButton.setDisable(false);
                     messageField.setDisable(false);
                     break;
                 case BOARD:
                     currentThread = getThreadId(item);
+                    sendButton.setText("Send");
                     refreshPosts(currentBoard, currentThread);
                     break;
             }
@@ -103,7 +104,15 @@ public class ChatController implements Initializable {
 
     @FXML
     void onSend() {
-        if (clientState == MenuState.GLOB) return;
+        if (clientState == MenuState.GLOB) {
+            host = messageField.getText();
+            refreshBoards();
+            sendButton.setDisable(true);
+            refreshButton.setDisable(false);
+            backButton.setDisable(true);
+            messageField.setDisable(true);
+            return;
+        }
         byte data[] = messageField.getText().getBytes(StandardCharsets.US_ASCII);
         try {
             Socket s = new Socket(host, port);
@@ -113,12 +122,14 @@ public class ChatController implements Initializable {
                     s.getOutputStream().write(boardInstruction);
                     s.getOutputStream().write(data);
                     s.getOutputStream().write(ESC);
+                    s.close();
                     break;
                 case THREAD:
                     byte threadInstruction[] = {SET, POSTS, currentBoard, currentThread};
                     s.getOutputStream().write(threadInstruction);
                     s.getOutputStream().write(data);
                     s.getOutputStream().write(ESC);
+                    s.close();
                     break;
             }
 
@@ -170,6 +181,7 @@ public class ChatController implements Initializable {
             byte instruction[] = {GET, BOARDS, ESC};
             s.getOutputStream().write(instruction);
             byte buf[] = readMessage(s);
+            s.close();
             int i = 0;
             while (buf[i] != ESC) {
                 byte id = buf[i];
@@ -195,6 +207,7 @@ public class ChatController implements Initializable {
             byte instruction[] = {GET, THREADS, boardId, ESC};
             s.getOutputStream().write(instruction);
             byte buf[] = readMessage(s);
+            s.close();
             int i = 0;
             while (buf[i] != ESC) {
                 byte id = buf[i];
@@ -220,6 +233,7 @@ public class ChatController implements Initializable {
             byte instruction[] = {GET, POSTS, boardId, threadId, ESC};
             s.getOutputStream().write(instruction);
             byte buf[] = readMessage(s);
+            s.close();
             int i = 0;
             while (buf[i] != ESC) {
                 String header = "";

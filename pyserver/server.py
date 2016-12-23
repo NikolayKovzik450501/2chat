@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import socket, sys, pdb, threading
+import socket, sys, pdb, threading, time
 
 ESC = bytes([240])
 MESS_ESC = bytes([241])
@@ -108,12 +108,12 @@ class Server():
             print("%d - %s" % (key, self.__boards__[key].get_name()))
 
     def connect_handle(self):
-       listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-       listener.bind(('', 5005))
-       listener.listen()
-       while not self.__exit__:
-           (client, address) = listener.accept()
-           self.handle_input(client, address)
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.bind(('', 5005))
+        listener.listen()
+        while not self.__exit__:
+            (client, address) = listener.accept()
+            self.handle_input(client, address)
 
     def send_boards(self, sock):
         for key in self.__boards__:
@@ -157,26 +157,7 @@ def main():
     serv.add_board('Films', 100)
     serv.add_board('Education', 100)
     serv.add_board('Music', 100)
-    listener = threading.Thread(target = serv.connect_handle)
-    listener.start()
-    instr = 0
-    cur = -1
-    select = -1
-    while instr != 'q':
-        if cur == -1:
-            serv.print_boards()
-        else:
-            serv.get_board(cur).print_threads()
-        instr = input()
-        code = ord(instr) - 48
-        if cur == -1 and serv.get_board(code) != None:
-            cur = code
-        elif cur != -1 and serv.get_board(cur).get_thread(code) != None:
-            select = code
-        elif instr == 'b':
-            cur = -1
-        elif instr == 'd':
-            serv.get_board(cur).delete_thread(select)
+    serv.connect_handle()
     serv.exit()
     return 0
 
