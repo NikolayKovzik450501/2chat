@@ -62,10 +62,15 @@ class Board():
         return new_id
 
     def delete_thread(self, thread_id):
-        self.__threads__.pop(thread_id)
+        if self.__threads__.get(thread_id) != None:
+            self.__threads__.pop(thread_id)
 
     def get_thread(self, thread_id):
         return self.__threads__.get(thread_id)
+
+    def print_threads(self):
+        for key in self.__threads__:
+            print("%d - %s" % (key, self.__threads__[key].get_header()))
 
     def send_threads(self, sock):
         for key in self.__threads__:
@@ -92,10 +97,15 @@ class Server():
         return new_id
 
     def delete_board(self, board_id):
-        self.__boards__.pop(board_id)
+        if self.__boards__.get(board_id) != None:
+            self.__boards__.pop(board_id)
 
     def get_board(self, board_id):
         return self.__boards__.get(board_id)
+
+    def print_boards(self):
+        for key in self.__boards__:
+            print("%d - %s" % (key, self.__boards__[key].get_name()))
 
     def connect_handle(self):
        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -112,6 +122,8 @@ class Server():
             sock.send(MESS_ESC)
         sock.send(ESC)
 
+    def exit(self):
+        self.__exit__ = True
 
     def handle_input(self, sock, address):
         buf = sock.recv(1)
@@ -145,10 +157,27 @@ def main():
     serv.add_board('Films', 100)
     serv.add_board('Education', 100)
     serv.add_board('Music', 100)
-    board = serv.get_board(0)
-    serv.connect_handle()
-    #listener = threading.Thread(target = serv.connect_handle())
-    #listener.start()
+    listener = threading.Thread(target = serv.connect_handle)
+    listener.start()
+    instr = 0
+    cur = -1
+    select = -1
+    while instr != 'q':
+        if cur == -1:
+            serv.print_boards()
+        else:
+            serv.get_board(cur).print_threads()
+        instr = input()
+        code = ord(instr) - 48
+        if cur == -1 and serv.get_board(code) != None:
+            cur = code
+        elif cur != -1 and serv.get_board(cur).get_thread(code) != None:
+            select = code
+        elif instr == 'b':
+            cur = -1
+        elif instr == 'd':
+            serv.get_board(cur).delete_thread(select)
+    serv.exit()
     return 0
 
 if (__name__ == "__main__"):
